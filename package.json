@@ -1,6 +1,6 @@
 {
   "name": "confd",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Multi-files JSON configuration loader",
   "author": {
     "name": "Nicola Orritos",
@@ -19,7 +19,11 @@
     "nodejs",
     "service"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "f.luent": "^0.6.2",
+    "sjl": "^0.4.0",
+    "unionj": "^0.6.2"
+  },
   "devDependencies": {
     "grunt-cli": "^0.1.13",
     "grunt-contrib-jshint": "^0.11.0",
