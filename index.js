@@ -7,6 +7,13 @@ var path   = require('path');
 var unionj = require('unionj');
 
 
+var STRATEGIES =
+{
+    LEAVES: 'LEAVES',
+    BACKCURSION: 'BACKCURSION'
+};
+
+
 function endsWith(end, str)
 {
     var result = false;
@@ -50,7 +57,7 @@ function unifyAllUnderFolder(folder)
             {
                 var common = files[pos];
 
-                files = files.splice(pos, 1);
+                files.splice(pos, 1);
                 files.unshift(common);
             }
 
@@ -97,15 +104,82 @@ function buildPath(parts)
     return result;
 }
 
-function load(basePath, subPath)
+function loadCommonsFile(basePath)
+{
+    var result;
+    
+    f.constrain(basePath).notnull().string().throws('Path must be a string');
+    
+    if (fs.existsSync(path.join(basePath, 'common.conf')))
+    {
+        result = sjl(path.join(basePath, 'common.conf'));
+    }
+    else if (fs.existsSync(path.join(basePath, 'common.json')))
+    {
+        result = sjl(path.join(basePath, 'common.json'));
+    }
+    
+    return result;
+}
+
+function loadCommonsFromPaths(basePath, paths)
+{
+    var result = {};
+    
+    f.constrain(basePath).notnull().string().throws('Base-path must be a string');
+    f.constrain(paths).notnull().array().throws('Second argument must be an array');
+    
+    var commons = [];
+    
+    var incrementalPath = basePath;
+    
+    var json = loadCommonsFile(incrementalPath);
+
+    if (json)
+    {
+        commons.push(json);
+    }
+    
+    for (var a=0; a<paths.length; a++)
+    {
+        incrementalPath = path.join(incrementalPath, paths[a]);
+        
+        json = loadCommonsFile(incrementalPath);
+        
+        if (json)
+        {
+            commons.push(json);
+        }
+    }
+    
+    if (commons.length)
+    {
+        result = unionj.add.apply(unionj, commons);
+    }
+    
+    return result;
+}
+
+function load(basePath, subPath, strategy)
 {
     var result;
     
     f.constrain(basePath, subPath).notnull().strings().throws('Paths must be strings');
     
-    var fullpath = path.join(basePath, subPath);
-    
-    result = unifyAllUnderFolder(fullpath);
+    if (strategy === STRATEGIES.LEAVES)
+    {
+        var fullpath = path.join(basePath, subPath);
+
+        result = unifyAllUnderFolder(fullpath);
+    }
+    else
+    {
+        // TODO
+        var commons = loadCommonsFromPaths(basePath, subPath.split(path.sep));
+        var inner   = load(basePath, subPath, STRATEGIES.LEAVES);
+        
+        result = unionj.add(commons, inner);
+    }
     
     return result;
 }
@@ -116,6 +190,7 @@ function Conf(basePath)
     f.constrain(basePath).notnull().string().throws('Path must be a string');
     
     this.basePath  = basePath;
+    this._strategy = STRATEGIES.LEAVES;  // Default strategy is 'leaves'
 }
 
 Conf.prototype.get = function()
@@ -129,7 +204,7 @@ Conf.prototype.get = function()
         
         var subPath = buildPath(args);
         
-        result = load(this.basePath, subPath);
+        result = load(this.basePath, subPath, this._strategy);
     }
     else
     {
@@ -141,6 +216,34 @@ Conf.prototype.get = function()
     return result;
 };
 
+Conf.prototype.strategy = function()
+{
+    var confRef = this;
+    
+    var obj = {};
+    
+    obj.leaves = function()
+    {
+        confRef._strategy = STRATEGIES.LEAVES;
+        
+        return confRef;
+    };
+    
+    obj.backcursion = function()
+    {
+        confRef._strategy = STRATEGIES.BACKCURSION;
+        
+        return confRef;
+    };
+    
+    obj.get = function()
+    {
+        return confRef._strategy;
+    };
+    
+    return obj;
+};
+
 Conf.prototype.toString = function()
 {
     return '[object Conf]';
@@ -149,6 +252,8 @@ Conf.prototype.toString = function()
 
 module.exports =
 {
+    STRATEGIES: STRATEGIES,
+    
     from: function(basePath)
     {
         f.constrain(basePath).notnull().string().throws('Base-path must be a string');

@@ -14,6 +14,14 @@ describe('conf.d node module', function()
         assert(conf.toString() === '[object Conf]');
     });
     
+    it('must create an object from an existing path with default "leaves" strategy', function()
+    {
+        var conf = confd.from('test/data');
+        
+        assert(conf);
+        assert(conf.strategy().get() === confd.STRATEGIES.LEAVES);
+    });
+    
     it('must load configuration from an existing path populated with a single configuration file', function()
     {
         var conf = confd.from('test/data');
@@ -53,5 +61,18 @@ describe('conf.d node module', function()
         assert(json);
         assert(json.k_e1 === 'v_e1_common');
         assert(json.k_e2 === 'v_e2');
+    });
+    
+    it('must load merged configurations using "backcursion" strategy', function()
+    {
+        var conf = confd.from('test/data').strategy().backcursion();
+        var json = conf.get('e/f');
+        
+        assert(conf);
+        assert(json);
+        assert(json.k    === 'v_common');
+        assert(json.k_e1 === 'v_e1_common');
+        assert(json.k_e2 === 'v_e2_common');
+        assert(json.k_f  === 'v_f');
     });
 });
