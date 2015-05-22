@@ -92,7 +92,7 @@ function buildPath(parts)
     {
         for (var a=0; a<parts.length; a++)
         {
-            result = fs.join(result, parts[a]);
+            result = path.join(result, parts[a]);
         }
     }
     
@@ -105,7 +105,7 @@ function load(basePath, subPath)
     
     f.constrain(basePath, subPath).notnull().strings().throws('Paths must be strings');
     
-    var fullpath = fs.join(basePath, subPath);
+    var fullpath = path.join(basePath, subPath);
     
     result = unifyAllUnderFolder(fullpath);
     

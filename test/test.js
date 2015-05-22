@@ -14,7 +14,7 @@ describe('confd node module', function()
         assert(conf.toString() === '[object Conf]');
     });
     
-    it('must load configuration from an existing path populated with a single configuration', function()
+    it('must load configuration from an existing path populated with a single configuration file', function()
     {
         var conf = confd.from('test/data');
         var json = conf.get();
@@ -22,5 +22,15 @@ describe('confd node module', function()
         assert(conf);
         assert(json);
         assert(json.k_a === 'v_a');
+    });
+    
+    it('must load configuration from an existing subpath populated with a single configuration file', function()
+    {
+        var conf = confd.from('test/data');
+        var json = conf.get('b');
+        
+        assert(conf);
+        assert(json);
+        assert(json.k_c === 'v_c');
     });
 });
