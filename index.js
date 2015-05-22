@@ -7,11 +7,32 @@ var path   = require('path');
 var unionj = require('unionj');
 
 
+function endsWith(end, str)
+{
+    var result = false;
+    
+    if (end && str && end.length && str.length)
+    {
+        var pos = str.indexOf(end);
+        
+        if (pos === str.length - end.length)
+        {
+            result = true;
+        }
+    }
+    
+    return result;
+}
+
 function unifyAllUnderFolder(folder)
 {
     var result;
     
     f.constrain(folder).notnull().string().throws('Argument must be a string');
+    
+    folder = path.resolve(folder);
+    
+    console.log('Going to parse folder "%s"...', folder);
     
     if (fs.existsSync(folder))
     {
@@ -39,16 +60,23 @@ function unifyAllUnderFolder(folder)
 
             for (var a=0; a<files.length; a++)
             {
-                var json = sjl(path.join(folder, files[a]));
-
-                if (json)
+                if (endsWith('.conf', files[a]) || endsWith('.json', files[a]))
                 {
-                    contents.push(json);
+                    var json = sjl(path.join(folder, files[a]));
+
+                    if (json)
+                    {
+                        contents.push(json);
+                    }
                 }
             }
 
             result = unionj.add.apply(null, contents);
         }
+    }
+    else
+    {
+        throw new Error('Path "' + folder + '" does not exist');
     }
     
     return result;
@@ -113,6 +141,11 @@ Conf.prototype.get = function()
     
     
     return result;
+};
+
+Conf.prototype.toString = function()
+{
+    return '[object Conf]';
 };
 
 

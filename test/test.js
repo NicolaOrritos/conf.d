@@ -6,10 +6,21 @@ var confd = require('../');
 
 describe('confd node module', function()
 {
-    it('must create an object from an existing path', function()
+    it('must create an object from an existing path populated with configuration files', function()
     {
-        var conf = confd.from('/etc/');
+        var conf = confd.from('test/data');
         
         assert(conf);
+        assert(conf.toString() === '[object Conf]');
+    });
+    
+    it('must load configuration from an existing path populated with a single configuration', function()
+    {
+        var conf = confd.from('test/data');
+        var json = conf.get();
+        
+        assert(conf);
+        assert(json);
+        assert(json.k_a === 'v_a');
     });
 });
