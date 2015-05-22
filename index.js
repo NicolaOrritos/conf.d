@@ -32,15 +32,13 @@ function unifyAllUnderFolder(folder)
     
     folder = path.resolve(folder);
     
-    console.log('Going to parse folder "%s"...', folder);
-    
     if (fs.existsSync(folder))
     {
         var files = fs.readdirSync(folder);
 
         if (files.length)
         {
-            // 'common.{conf|json}' files take precedence:
+            // 'common.{conf|json}' files take precedence, acting as base configuration:
             var pos = files.indexOf('common.conf');
 
             if (pos === -1)
@@ -48,12 +46,12 @@ function unifyAllUnderFolder(folder)
                 pos = files.indexOf('common.json');
             }
 
-            if (pos !== -1)
+            if (pos !== -1 && pos !== 0)
             {
                 var common = files[pos];
 
                 files = files.splice(pos, 1);
-                files.push(common);
+                files.unshift(common);
             }
 
             var contents = [];
@@ -117,7 +115,7 @@ function Conf(basePath)
 {
     f.constrain(basePath).notnull().string().throws('Path must be a string');
     
-    this.basePath = basePath;
+    this.basePath  = basePath;
 }
 
 Conf.prototype.get = function()

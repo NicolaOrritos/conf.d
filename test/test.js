@@ -4,7 +4,7 @@ var assert = require('assert');
 var confd = require('../');
 
 
-describe('confd node module', function()
+describe('conf.d node module', function()
 {
     it('must create an object from an existing path populated with configuration files', function()
     {
@@ -42,5 +42,16 @@ describe('confd node module', function()
         assert(conf);
         assert(json);
         assert(json.k_d === 'v_d2');
+    });
+    
+    it('must load merged configurations using the common one as base', function()
+    {
+        var conf = confd.from('test/data');
+        var json = conf.get('e');
+        
+        assert(conf);
+        assert(json);
+        assert(json.k_e1 === 'v_e1_common');
+        assert(json.k_e2 === 'v_e2');
     });
 });
