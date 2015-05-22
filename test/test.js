@@ -33,4 +33,14 @@ describe('confd node module', function()
         assert(json);
         assert(json.k_c === 'v_c');
     });
+    
+    it('must load merged configurations from an existing subpath', function()
+    {
+        var conf = confd.from('test/data');
+        var json = conf.get('d');
+        
+        assert(conf);
+        assert(json);
+        assert(json.k_d === 'v_d2');
+    });
 });

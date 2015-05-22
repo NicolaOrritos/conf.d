@@ -70,8 +70,8 @@ function unifyAllUnderFolder(folder)
                     }
                 }
             }
-
-            result = unionj.add.apply(null, contents);
+            
+            result = unionj.add.apply(unionj, contents);
         }
     }
     else
