@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+
+var docopt = require('docopt').docopt;
+
+var options = 'Either starts the conf.d REST server or the command-line reader \n'
+            + '  \n'
+            + 'Usage: \n'
+            + '  confd cli get <PATH>\n'
+            + '  confd rest [--port=<PORT>] \n'
+            + '  confd -h | --help \n'
+            + '  \n'
+            + 'Modes: \n'
+            + '  cli  Starts the command-line reader\n'
+            + '  rest Starts the REST server\n'
+            + '  \n'
+            + 'Options: \n'
+            + '  get <PATH>    Read the JSON object from <PATH> \n'
+            + '  --port=<PORT> Instructs the REST server to listen on port <PORT>. Default port is 6868. \n'
+            + '  -h --help     Shows this help \n';
+
+var cmd = docopt(options);
+
+if (cmd)
+{
+    console.log('Cmd: %s', JSON.stringify(cmd));
+    
+    if (cmd.rest)
+    {
+        // TODO: Start the REST server
+    }
+    else if (cmd.cli)
+    {
+        // TODO: Start the cli interface
+    }
+}

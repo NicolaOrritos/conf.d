@@ -10,8 +10,10 @@
   "repository": "NicolaOrritos/confd",
   "license": "MIT",
   "files": [
-    "index.js"
+    "index.js",
+    "confd"
   ],
+  "main": "index.js",
   "keywords": [
     "confd",
     "configuration",
@@ -20,6 +22,7 @@
     "service"
   ],
   "dependencies": {
+    "docopt": "^0.6.2",
     "f.luent": "^0.6.6",
     "sjl": "^0.4.0",
     "unionj": "^0.6.2"

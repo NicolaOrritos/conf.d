@@ -1,6 +1,7 @@
 {
   "boss": true,
   "curly": true,
+  "laxbreak": true,
   "eqeqeq": true,
   "eqnull": true,
   "immed": true,

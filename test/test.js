@@ -66,7 +66,16 @@ describe('conf.d node module', function()
     it('must load merged configurations using "backcursion" strategy', function()
     {
         var conf = confd.from('test/data').strategy().backcursion();
-        var json = conf.get('e/f');
+        var json = conf.get('e');
+        
+        assert(conf);
+        assert(json);
+        assert(json.k_e1 === 'v_e1_common');
+        assert(json.k_e2 === 'v_e2');
+        
+        
+        conf = confd.from('test/data').strategy().backcursion();
+        json = conf.get('e/f');
         
         assert(conf);
         assert(json);
