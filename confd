@@ -1,11 +1,32 @@
 #!/usr/bin/env node
 
+var confd  = require('./index');
 var docopt = require('docopt').docopt;
+
+var DEFAULT_PORT = 6868;
+
+
+function startRest(port)
+{
+    port = port || DEFAULT_PORT;
+    
+    console.log('Going to start conf.d service on port "%s"...', port);
+    
+    // TODO: Start the REST server
+}
+
+function startCli(path, subpath)
+{
+    var conf = confd.from(path).get(subpath);
+    
+    console.log(JSON.stringify(conf));
+}
+
 
 var options = 'Either starts the conf.d REST server or the command-line reader \n'
             + '  \n'
             + 'Usage: \n'
-            + '  confd cli get <PATH>\n'
+            + '  confd cli get <PATH> [<SUBPATH>]\n'
             + '  confd rest [--port=<PORT>] \n'
             + '  confd -h | --help \n'
             + '  \n'
@@ -14,9 +35,9 @@ var options = 'Either starts the conf.d REST server or the command-line reader \
             + '  rest Starts the REST server\n'
             + '  \n'
             + 'Options: \n'
-            + '  get <PATH>    Read the JSON object from <PATH> \n'
-            + '  --port=<PORT> Instructs the REST server to listen on port <PORT>. Default port is 6868. \n'
-            + '  -h --help     Shows this help \n';
+            + '  get <PATH> <SUBPATH> Read the JSON object from <PATH>, eventually scoped to sub-path <SUBPATH> \n'
+            + '  --port=<PORT>        Instructs the REST server to listen on port <PORT>. Default port is ' + DEFAULT_PORT + '. \n'
+            + '  -h --help            Shows this help \n';
 
 var cmd = docopt(options);
 
@@ -26,10 +47,10 @@ if (cmd)
     
     if (cmd.rest)
     {
-        // TODO: Start the REST server
+        startRest(cmd['<PORT>']);
     }
     else if (cmd.cli)
     {
-        // TODO: Start the cli interface
+        startCli(cmd['<PATH>'], cmd['<SUBPATH>']);
     }
 }

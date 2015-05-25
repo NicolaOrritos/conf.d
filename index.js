@@ -97,7 +97,10 @@ function buildPath(parts)
     {
         for (var a=0; a<parts.length; a++)
         {
-            result = path.join(result, parts[a]);
+            if (parts[a])
+            {
+                result = path.join(result, parts[a]);
+            }
         }
     }
     
