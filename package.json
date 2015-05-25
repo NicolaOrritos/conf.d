@@ -1,6 +1,6 @@
 {
   "name": "confd",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "Multi-files JSON configuration loader",
   "author": {
     "name": "Nicola Orritos",
@@ -11,6 +11,7 @@
   "license": "MIT",
   "files": [
     "index.js",
+    "rest.js",
     "confd"
   ],
   "main": "index.js",
@@ -24,8 +25,9 @@
   "dependencies": {
     "docopt": "^0.6.2",
     "f.luent": "^0.6.6",
+    "restify": "^3.0.3",
     "sjl": "^0.4.0",
-    "unionj": "^0.6.2"
+    "unionj": "^0.6.4"
   },
   "devDependencies": {
     "grunt-cli": "^0.1.13",
