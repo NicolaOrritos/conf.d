@@ -84,4 +84,14 @@ describe('conf.d node module', function()
         assert(json.k_e2 === 'v_e2_common');
         assert(json.k_f  === 'v_f');
     });
+    
+    it('must load default upper configurations when using "backcursion" and no lower folders/files are found', function()
+    {
+        var conf = confd.from('test/data').strategy().backcursion();
+        var json = conf.get('x');
+        
+        assert(conf);
+        assert(json);
+        assert(json.k === 'v_common');
+    });
 });

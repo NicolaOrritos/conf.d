@@ -81,7 +81,7 @@ function unifyAllUnderFolder(folder)
     }
     else
     {
-        throw new Error('Path "' + folder + '" does not exist');
+        result = {};
     }
     
     return result;
