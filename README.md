@@ -71,9 +71,10 @@ _Conf.d_ offers two different strategies to load the configuration data:
 - _Backcursion_
 
 ### Leaves
-> [Coming soon]
+When using the _"Leaves"_ strategy all the documents from the same folder are bundled into one.  
+There will be no sub-/super-paths traversing: the documents that's going to be bundled are just the ones into the one folder addressed by the provided path.
 
-### _Backcursion_
+### Backcursion
 > [Coming soon]
 
 
@@ -88,7 +89,7 @@ _Conf.d_ offers two different strategies to load the configuration data:
 MIT © [Nicola Orritos](nicolaorritos.github.io)
 
 
-[npm-image]: https://badge.fury.io/js/conf.d.svg
-[npm-url]: https://npmjs.org/package/conf.d
+[npm-image]: https://badge.fury.io/js/confd.svg
+[npm-url]: https://npmjs.org/package/confd
 [daviddm-image]: https://david-dm.org/NicolaOrritos/conf.d.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/NicolaOrritos/conf.d
