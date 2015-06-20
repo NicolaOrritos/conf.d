@@ -8,29 +8,31 @@ var DEFAULT_PORT = 6868;
 var DEFAULT_FROM = '/etc/conf.d';
 
 
-function startRest(port, from)
+function startRest(port, from, strategy)
 {
     port = port || DEFAULT_PORT;
     from = from || DEFAULT_FROM;
-    
+
     console.log('Going to start conf.d service on port "%s", from folder "%s"...', port, from);
-    
-    rest.run(from, port);
+
+    rest.run(from, port, strategy);
 }
 
-function startCli(path, subpath)
+function startCli(path, subpath, strategy)
 {
-    var conf = confd.from(path).get(subpath);
-    
-    console.log(JSON.stringify(conf));
+    var conf = confd.from(path).strategy().set(strategy);
+
+    var json = conf.get(subpath);
+
+    console.log(JSON.stringify(json));
 }
 
 
 var options = 'Either starts the conf.d REST server or the command-line reader \n'
             + '  \n'
             + 'Usage: \n'
-            + '  confd cli get <PATH> [<SUBPATH>]\n'
-            + '  confd rest [--port <PORT>] [--from <FOLDER>]\n'
+            + '  confd cli get <PATH> [<SUBPATH>] [--strategy leaves|backcursion]\n'
+            + '  confd rest [--port <PORT>] [--from <FOLDER>] [--strategy leaves|backcursion]\n'
             + '  confd -h | --help \n'
             + '  \n'
             + 'Modes: \n'
@@ -38,10 +40,11 @@ var options = 'Either starts the conf.d REST server or the command-line reader \
             + '  rest Starts the REST server\n'
             + '  \n'
             + 'Options: \n'
-            + '  get <PATH> <SUBPATH> Read the JSON object from <PATH>, eventually scoped to sub-path <SUBPATH> \n'
-            + '  --port <PORT>        Instructs the REST server to listen on port <PORT>. Default port is ' + DEFAULT_PORT + '. \n'
-            + '  --from <FOLDER>      Instructs the REST server to read data from <FOLDER>. Default folder is ' + DEFAULT_FROM + '. \n'
-            + '  -h --help            Shows this help \n';
+            + '  get <PATH> [<SUBPATH>]        Read the JSON object from <PATH>, eventually scoped to sub-path <SUBPATH> \n'
+            + '  --strategy leaves|backcursion Choose the strategy to be used to unify the documents (default is "' + confd.strategy().default().toLowerCase() + '") \n'
+            + '  --port <PORT>                 Instructs the REST server to listen on port <PORT>. Default port is ' + DEFAULT_PORT + '. \n'
+            + '  --from <FOLDER>               Instructs the REST server to read data from <FOLDER>. Default folder is ' + DEFAULT_FROM + '. \n'
+            + '  -h --help                     Shows this help \n';
 
 var cmd = docopt(options);
 
@@ -49,10 +52,10 @@ if (cmd)
 {
     if (cmd.rest)
     {
-        startRest(cmd['--port'], cmd['--from']);
+        startRest(cmd['--port'], cmd['--from'], cmd['--strategy']);
     }
     else if (cmd.cli)
     {
-        startCli(cmd['<PATH>'], cmd['<SUBPATH>']);
+        startCli(cmd['<PATH>'], cmd['<SUBPATH>'], cmd['--strategy']);
     }
 }

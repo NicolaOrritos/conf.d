@@ -13,32 +13,34 @@ var STRATEGIES =
     BACKCURSION: 'BACKCURSION'
 };
 
+var DEFAULT_STRATEGY = STRATEGIES.LEAVES;
+
 
 function endsWith(end, str)
 {
     var result = false;
-    
+
     if (end && str && end.length && str.length)
     {
         var pos = str.indexOf(end);
-        
+
         if (pos === str.length - end.length)
         {
             result = true;
         }
     }
-    
+
     return result;
 }
 
 function unifyAllUnderFolder(folder)
 {
     var result;
-    
+
     f.constrain(folder).notnull().string().throws('Argument must be a string');
-    
+
     folder = path.resolve(folder);
-    
+
     if (fs.existsSync(folder))
     {
         var files = fs.readdirSync(folder);
@@ -75,7 +77,7 @@ function unifyAllUnderFolder(folder)
                     }
                 }
             }
-            
+
             result = unionj.add.apply(unionj, contents);
         }
     }
@@ -83,16 +85,16 @@ function unifyAllUnderFolder(folder)
     {
         result = {};
     }
-    
+
     return result;
 }
 
 function buildPath(parts)
 {
     var result = '.';
-    
+
     f.constrain(parts).notnull().array().throws('Argument must be an array');
-    
+
     if (parts.length)
     {
         for (var a=0; a<parts.length; a++)
@@ -103,16 +105,16 @@ function buildPath(parts)
             }
         }
     }
-    
+
     return result;
 }
 
 function loadCommonsFile(basePath)
 {
     var result;
-    
+
     f.constrain(basePath).notnull().string().throws('Path must be a string');
-    
+
     if (fs.existsSync(path.join(basePath, 'common.conf')))
     {
         result = sjl(path.join(basePath, 'common.conf'));
@@ -121,54 +123,54 @@ function loadCommonsFile(basePath)
     {
         result = sjl(path.join(basePath, 'common.json'));
     }
-    
+
     return result;
 }
 
 function loadCommonsFromPaths(basePath, paths)
 {
     var result = {};
-    
+
     f.constrain(basePath).notnull().string().throws('Base-path must be a string');
     f.constrain(paths).notnull().array().throws('Second argument must be an array');
-    
+
     var commons = [];
-    
+
     var incrementalPath = basePath;
-    
+
     var json = loadCommonsFile(incrementalPath);
 
     if (json)
     {
         commons.push(json);
     }
-    
+
     for (var a=0; a<paths.length; a++)
     {
         incrementalPath = path.join(incrementalPath, paths[a]);
-        
+
         json = loadCommonsFile(incrementalPath);
-        
+
         if (json)
         {
             commons.push(json);
         }
     }
-    
+
     if (commons.length)
     {
         result = unionj.add.apply(unionj, commons);
     }
-    
+
     return result;
 }
 
 function load(basePath, subPath, strategy)
 {
     var result;
-    
+
     f.constrain(basePath, subPath).notnull().strings().throws('Paths must be strings');
-    
+
     if (strategy === STRATEGIES.LEAVES)
     {
         var fullpath = path.join(basePath, subPath);
@@ -180,10 +182,10 @@ function load(basePath, subPath, strategy)
         // TODO
         var commons = loadCommonsFromPaths(basePath, subPath.split(path.sep));
         var inner   = load(basePath, subPath, STRATEGIES.LEAVES);
-        
+
         result = unionj.add(commons, inner);
     }
-    
+
     return result;
 }
 
@@ -191,22 +193,22 @@ function load(basePath, subPath, strategy)
 function Conf(basePath)
 {
     f.constrain(basePath).notnull().string().throws('Path must be a string');
-    
+
     this.basePath  = basePath;
-    this._strategy = STRATEGIES.LEAVES;  // Default strategy is 'leaves'
+    this._strategy = DEFAULT_STRATEGY;
 }
 
 Conf.prototype.get = function()
 {
     var result = {};
-    
+
     if (arguments.length)
     {
         // Parse sublevels:
         var args = Array.prototype.slice.call(arguments);
-        
+
         var subPath = buildPath(args);
-        
+
         result = load(this.basePath, subPath, this._strategy);
     }
     else
@@ -214,36 +216,56 @@ Conf.prototype.get = function()
         // Return the whole structure
         result = unifyAllUnderFolder(this.basePath);
     }
-    
-    
+
+
     return result;
 };
 
 Conf.prototype.strategy = function()
 {
     var confRef = this;
-    
+
     var obj = {};
-    
+
     obj.leaves = function()
     {
         confRef._strategy = STRATEGIES.LEAVES;
-        
+
         return confRef;
     };
-    
+
     obj.backcursion = function()
     {
         confRef._strategy = STRATEGIES.BACKCURSION;
-        
+
         return confRef;
     };
-    
+
     obj.get = function()
     {
         return confRef._strategy;
     };
-    
+
+    obj.set = function(str)
+    {
+        if (str &&
+                (   str.toUpperCase() === STRATEGIES.LEAVES
+                 || str.toUpperCase() === STRATEGIES.BACKCURSION
+                )
+           )
+        {
+            confRef._strategy = str.toUpperCase();
+
+            console.log('Set to "%s"', str.toUpperCase());
+
+            return confRef;
+        }
+        else
+        {
+            throw new Error('No such strategy');
+        }
+    };
+
     return obj;
 };
 
@@ -256,13 +278,23 @@ Conf.prototype.toString = function()
 module.exports =
 {
     STRATEGIES: STRATEGIES,
-    
+
+    strategy: function()
+    {
+        return {
+            default: function()
+            {
+                return DEFAULT_STRATEGY;
+            }
+        };
+    },
+
     from: function(basePath)
     {
         f.constrain(basePath).notnull().string().throws('Base-path must be a string');
-        
+
         var result = new Conf(basePath);
-        
+
         return result;
     }
 };
