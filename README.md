@@ -58,7 +58,21 @@ console.log('Result is: "%s"', JSON.stringify(obj));
 
 
 ## Paths
-> [Coming soon]
+Let's say we have the following files and folders structure:
+```
+/etc/conf.d/
+    /subfolder1/
+        file1.json => {"k": "v1"}
+        file2.json => {"k": "v2"}
+        /subfolder2/
+            file1.json => {"x": "y"}
+            file2.json => {"x": "y"}
+```
+If we execute `confd cli get /etc/conf.d subfolder1` we obtain `{"k": "v2"}` as a result.  
+Here's what confd did to satisfy our request:
+- We told confd to get the files from root folder `/etc/conf.d/`, subfolder 'subfolder1'
+- confd then proceded to merge the contents of that folder, hence `file1.json` and `file2.json`
+- The result is the merge of the two JSON documents (for the merge rules, see [unionj](http://github.com/NicolaOrritos/unionj) project)
 
 
 ## _"Common"_ documents
