@@ -1,13 +1,13 @@
 {
   "name": "confd",
-  "version": "0.10.6",
+  "version": "0.10.8",
   "description": "Multi-files JSON configuration loader",
   "author": {
     "name": "Nicola Orritos",
     "email": "nicola.orritos@gmail.com",
     "url": "nicolaorritos.github.io"
   },
-  "repository": "NicolaOrritos/confd",
+  "repository": "NicolaOrritos/conf.d",
   "license": "MIT",
   "files": [
     "index.js",
