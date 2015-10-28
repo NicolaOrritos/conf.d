@@ -1,6 +1,6 @@
 {
   "name": "confd",
-  "version": "0.10.10",
+  "version": "0.10.12",
   "description": "Multi-files JSON configuration loader",
   "author": {
     "name": "Nicola Orritos",
@@ -25,7 +25,7 @@
   "dependencies": {
     "docopt": "^0.6.2",
     "f.luent": "^0.6.6",
-    "restify": "^3.0.3",
+    "restify": "^4.0.3",
     "sjl": "^0.4.0",
     "unionj": "^0.6.6"
   },
