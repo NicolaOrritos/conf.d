@@ -1,11 +1,29 @@
 'use strict';
 
+/* global describe */
+
 var assert = require('assert');
 var confd = require('../');
 
 
 describe('conf.d node module', function()
 {
+    it('must not throw an error when dealing with folders with 4-characters-long names', function()
+    {
+        var conf = confd.from('test/data');
+        var json = conf.get();
+
+        assert(conf);
+        assert(json);
+
+
+        conf = confd.from('test/data').strategy().backcursion();
+        json = conf.get();
+
+        assert(conf);
+        assert(json);
+    });
+
     it('must create an object from an existing path populated with configuration files', function()
     {
         var conf = confd.from('test/data');

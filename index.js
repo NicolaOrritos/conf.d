@@ -24,7 +24,7 @@ function endsWith(end, str)
     {
         var pos = str.indexOf(end);
 
-        if (pos === str.length - end.length)
+        if (pos >= 0 && pos === str.length - end.length)
         {
             result = true;
         }
@@ -255,8 +255,6 @@ Conf.prototype.strategy = function()
            )
         {
             confRef._strategy = str.toUpperCase();
-
-            console.log('Set to "%s"', str.toUpperCase());
 
             return confRef;
         }
