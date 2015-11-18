@@ -32,6 +32,16 @@ describe('conf.d node module', function()
         assert(conf.toString() === '[object Conf]');
     });
 
+    it('must return the path with which it got initialized when calling the "from()" method on the returned object', function()
+    {
+        var conf = confd.from('test/data');
+        var path = conf.from();
+
+        assert(conf);
+        assert(path);
+        assert(path === 'test/data');
+    });
+
     it('must create an object from an existing path with the default strategy set', function()
     {
         var conf = confd.from('test/data');

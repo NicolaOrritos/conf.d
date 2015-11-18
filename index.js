@@ -221,6 +221,11 @@ Conf.prototype.get = function()
     return result;
 };
 
+Conf.prototype.from = function()
+{
+    return this.basePath;
+};
+
 Conf.prototype.strategy = function()
 {
     var confRef = this;
