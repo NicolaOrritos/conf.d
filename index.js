@@ -254,7 +254,8 @@ Conf.prototype.get = function()
     else
     {
         // Here things are decided depending on the strategy previously set by the user:
-        if (this._strategy === STRATEGIES.LEAVES)
+        if (   this._strategy === STRATEGIES.LEAVES
+            || this._strategy === STRATEGIES.BACKCURSION)
         {
             // Return the whole structure:
             result = unifyAllUnderFolder(this.basePath);

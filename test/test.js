@@ -30,6 +30,26 @@ describe('conf.d node module', function()
         assert(conf.toString() === '[object Conf]');
     });
 
+    it('must create an object, NOT AN ARRAY, from an existing path populated with configuration files, when using the "get()" method and LEAVES or BACKCURSION strategies', function()
+    {
+        var conf = confd.from('test/data').get();
+
+        assert(conf);
+        assert(conf.length === undefined);
+
+
+        conf = confd.from('test/data').strategy().backcursion().get();
+
+        assert(conf);
+        assert(conf.length === undefined);
+
+
+        conf = confd.from('test/data').strategy().array().get();
+
+        assert(conf);
+        assert(conf.length || conf.length === 0);
+    });
+
     it('must return the path with which it got initialized when calling the "from()" method on the returned object', function()
     {
         var conf = confd.from('test/data');
