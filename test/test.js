@@ -205,7 +205,7 @@ describe('conf.d node module', function()
         assert(json.k === 'v_common');
     });
 
-    it('must load an array of configurations when using the "array" strategy', function()
+    it('must load an array of configurations when using the "array" strategy and we have simple files all into the same folder', function()
     {
         var conf = confd.from('test/data').strategy().array();
         var json = conf.get('d');
@@ -217,5 +217,41 @@ describe('conf.d node module', function()
         assert(json[1]);
         assert(json[0].k_d === 'v_d1');
         assert(json[1].k_d === 'v_d2');
+    });
+
+    it('must load an array of configurations when using the "array" strategy and we have both files and folders containing other files, under the same root folder', function()
+    {
+        var conf = confd.from('test/data').strategy().array();
+        var json = conf.get('e');
+
+        assert(conf);
+        assert(json);
+        assert(json.length === 3);
+        assert(json[0]);
+        assert(json[1]);
+        assert(json[2]);
+
+        // We can't be sure about the order, hence the "combination-checks":
+        assert(   (   json[0].k_f === 'v_f'
+                   && json[1].k_e1 === 'v_e1_common'
+                   && json[1].k_e2 === 'v_e2_common'
+                   && json[2].k_e2 === 'v_e2')
+               || (   json[1].k_f === 'v_f'
+                   && json[2].k_e1 === 'v_e1_common'
+                   && json[2].k_e2 === 'v_e2_common'
+                   && json[0].k_e2 === 'v_e2')
+               || (   json[2].k_f === 'v_f'
+                   && json[0].k_e1 === 'v_e1_common'
+                   && json[0].k_e2 === 'v_e2_common'
+                   && json[1].k_e2 === 'v_e2')
+               || (   json[1].k_f === 'v_f'
+                   && json[0].k_e1 === 'v_e1_common'
+                   && json[0].k_e2 === 'v_e2_common'
+                   && json[2].k_e2 === 'v_e2')
+               || (   json[2].k_f === 'v_f'
+                   && json[1].k_e1 === 'v_e1_common'
+                   && json[1].k_e2 === 'v_e2_common'
+                   && json[0].k_e2 === 'v_e2')
+              );
     });
 });

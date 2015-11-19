@@ -115,6 +115,15 @@ function arrayizeAllUnderFolder(folder)
                         result.push(json);
                     }
                 }
+                else
+                {
+                    var subpath = path.join(folder, files[a]);
+
+                    if (fs.statSync(subpath).isDirectory())
+                    {
+                        result.push(unifyAllUnderFolder(subpath));
+                    }
+                }
             }
         }
     }
