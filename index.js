@@ -10,7 +10,8 @@ var unionj = require('unionj');
 var STRATEGIES =
 {
     LEAVES: 'LEAVES',
-    BACKCURSION: 'BACKCURSION'
+    BACKCURSION: 'BACKCURSION',
+    ARRAY: 'ARRAY'
 };
 
 var DEFAULT_STRATEGY = STRATEGIES.LEAVES;
@@ -84,6 +85,38 @@ function unifyAllUnderFolder(folder)
     else
     {
         result = {};
+    }
+
+    return result;
+}
+
+function arrayizeAllUnderFolder(folder)
+{
+    var result = [];
+
+    f.constrain(folder).notnull().string().throws('Argument must be a string');
+
+    folder = path.resolve(folder);
+
+    if (fs.existsSync(folder))
+    {
+        var files = fs.readdirSync(folder);
+
+        if (files.length)
+        {
+            for (var a=0; a<files.length; a++)
+            {
+                if (endsWith('.conf', files[a]) || endsWith('.json', files[a]))
+                {
+                    var json = sjl(path.join(folder, files[a]));
+
+                    if (json)
+                    {
+                        result.push(json);
+                    }
+                }
+            }
+        }
     }
 
     return result;
@@ -171,19 +204,26 @@ function load(basePath, subPath, strategy)
 
     f.constrain(basePath, subPath).notnull().strings().throws('Paths must be strings');
 
+    var fullpath;
+
     if (strategy === STRATEGIES.LEAVES)
     {
-        var fullpath = path.join(basePath, subPath);
+        fullpath = path.join(basePath, subPath);
 
         result = unifyAllUnderFolder(fullpath);
     }
-    else
+    else if (strategy === STRATEGIES.BACKCURSION)
     {
-        // TODO
         var commons = loadCommonsFromPaths(basePath, subPath.split(path.sep));
         var inner   = load(basePath, subPath, STRATEGIES.LEAVES);
 
         result = unionj.add(commons, inner);
+    }
+    else
+    {
+        fullpath = path.join(basePath, subPath);
+
+        result = arrayizeAllUnderFolder(fullpath);
     }
 
     return result;
@@ -213,8 +253,17 @@ Conf.prototype.get = function()
     }
     else
     {
-        // Return the whole structure
-        result = unifyAllUnderFolder(this.basePath);
+        // Here things are decided depending on the strategy previously set by the user:
+        if (this._strategy === STRATEGIES.LEAVES)
+        {
+            // Return the whole structure:
+            result = unifyAllUnderFolder(this.basePath);
+        }
+        else // Assumes "ARRAY" strategy
+        {
+            // Return an array of files from the base-path:
+            result = arrayizeAllUnderFolder(this.basePath);
+        }
     }
 
 
@@ -246,6 +295,13 @@ Conf.prototype.strategy = function()
         return confRef;
     };
 
+    obj.array = function()
+    {
+        confRef._strategy = STRATEGIES.ARRAY;
+
+        return confRef;
+    };
+
     obj.get = function()
     {
         return confRef._strategy;
@@ -256,6 +312,7 @@ Conf.prototype.strategy = function()
         if (str &&
                 (   str.toUpperCase() === STRATEGIES.LEAVES
                  || str.toUpperCase() === STRATEGIES.BACKCURSION
+                 || str.toUpperCase() === STRATEGIES.ARRAY
                 )
            )
         {

@@ -1,7 +1,5 @@
 'use strict';
 
-/* global describe */
-
 var assert = require('assert');
 var confd = require('../');
 
@@ -64,6 +62,34 @@ describe('conf.d node module', function()
 
         assert(conf);
         assert(conf.strategy().get() === confd.STRATEGIES.LEAVES);
+
+
+        conf.strategy().set(confd.STRATEGIES.ARRAY);
+
+        assert(conf);
+        assert(conf.strategy().get() === confd.STRATEGIES.ARRAY);
+    });
+
+    it('must correctly set strategies when using ad-hoc methods', function()
+    {
+        var conf = confd.from('test/data');
+
+        conf.strategy().backcursion();
+
+        assert(conf);
+        assert(conf.strategy().get() === confd.STRATEGIES.BACKCURSION);
+
+
+        conf.strategy().leaves();
+
+        assert(conf);
+        assert(conf.strategy().get() === confd.STRATEGIES.LEAVES);
+
+
+        conf.strategy().array();
+
+        assert(conf);
+        assert(conf.strategy().get() === confd.STRATEGIES.ARRAY);
     });
 
     it('must refuse incorrect strategies passed to "set()" method', function()
@@ -72,7 +98,7 @@ describe('conf.d node module', function()
 
         try
         {
-            conf.strategy().set('no-such-a-strategy');
+            conf.strategy().set('no-such-strategy');
 
             throw new Error('Should have thrown an error');
         }
@@ -157,5 +183,19 @@ describe('conf.d node module', function()
         assert(conf);
         assert(json);
         assert(json.k === 'v_common');
+    });
+
+    it('must load an array of configurations when using the "array" strategy', function()
+    {
+        var conf = confd.from('test/data').strategy().array();
+        var json = conf.get('d');
+
+        assert(conf);
+        assert(json);
+        assert(json.length === 2);
+        assert(json[0]);
+        assert(json[1]);
+        assert(json[0].k_d === 'v_d1');
+        assert(json[1].k_d === 'v_d2');
     });
 });
