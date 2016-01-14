@@ -1,5 +1,6 @@
 'use strict';
 
+var P      = require("bluebird");
 var f      = require('f.luent');
 var fs     = require('fs');
 var sjl    = require('sjl');
@@ -36,99 +37,196 @@ function endsWith(end, str)
 
 function unifyAllUnderFolder(folder)
 {
-    var result;
-
-    f.constrain(folder).notnull().string().throws('Argument must be a string');
-
-    folder = path.resolve(folder);
-
-    if (fs.existsSync(folder))
+    return new P(function(resolve, reject)
     {
-        var files = fs.readdirSync(folder);
-
-        if (files.length)
+        f.constrain(folder).notnull().string()
+        .otherwise(function()
         {
-            // 'common.{conf|json}' files take precedence, acting as base configuration:
-            var pos = files.indexOf('common.conf');
+            reject(new Error('Argument must be a string'));
+        });
 
-            if (pos === -1)
+        folder = path.resolve(folder);
+
+        fs.access(folder, fs.R_OK | fs.W_OK, function(err)
+        {
+            if (err)
             {
-                pos = files.indexOf('common.json');
+                // In case we don't find the folder just return null and continue mixing JSONs:
+                resolve(null);
             }
-
-            if (pos !== -1 && pos !== 0)
+            else
             {
-                var common = files[pos];
-
-                files.splice(pos, 1);
-                files.unshift(common);
-            }
-
-            var contents = [];
-
-            for (var a=0; a<files.length; a++)
-            {
-                if (endsWith('.conf', files[a]) || endsWith('.json', files[a]))
+                fs.readdir(folder, function(err, files)
                 {
-                    var json = sjl(path.join(folder, files[a]));
-
-                    if (json)
+                    if (err)
                     {
-                        contents.push(json);
+                        reject(err);
                     }
-                }
+                    else if (files.length)
+                    {
+                        // 'common.{conf|json}' files take precedence, acting as base configuration:
+                        var pos = files.indexOf('common.conf');
+
+                        if (pos === -1)
+                        {
+                            pos = files.indexOf('common.json');
+                        }
+
+                        if (pos !== -1 && pos !== 0)
+                        {
+                            var common = files[pos];
+
+                            files.splice(pos, 1);
+                            files.unshift(common);
+                        }
+
+                        P.map(files, function(file)
+                        {
+                            if (endsWith('.conf', file) || endsWith('.json', file))
+                            {
+                                return sjl(path.join(folder, file));
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        })
+                        .reduce(function(contents, json)
+                        {
+                            if (!f.$.isArray(contents))
+                            {
+                                contents = [contents];
+                            }
+
+                            if (json)
+                            {
+                                contents.push(json);
+                            }
+
+                            return contents;
+                        })
+                        .then(function(contents)
+                        {
+                            /* The "reduce" step is skipped when only one doc is loaded.
+                             * If so we need wrapping that only result in an array:
+                             */
+                            if (!f.$.isArray(contents))
+                            {
+                                contents = [contents];
+                            }
+
+                            var result = unionj.add.apply(unionj, contents);
+
+                            resolve(result);
+                        })
+                        .catch(function(err)
+                        {
+                            reject(err);
+                        });
+                    }
+                    else
+                    {
+                        resolve({});
+                    }
+                });
             }
-
-            result = unionj.add.apply(unionj, contents);
-        }
-    }
-    else
-    {
-        result = {};
-    }
-
-    return result;
+        });
+    });
 }
 
 function arrayizeAllUnderFolder(folder)
 {
-    var result = [];
-
-    f.constrain(folder).notnull().string().throws('Argument must be a string');
-
-    folder = path.resolve(folder);
-
-    if (fs.existsSync(folder))
+    return new P(function(resolve, reject)
     {
-        var files = fs.readdirSync(folder);
-
-        if (files.length)
+        f.constrain(folder).notnull().string()
+        .otherwise(function()
         {
-            for (var a=0; a<files.length; a++)
+            reject(new Error('Argument must be a string'));
+        });
+
+        folder = path.resolve(folder);
+
+        fs.access(folder, fs.R_OK | fs.W_OK, function(err)
+        {
+            if (err)
             {
-                if (endsWith('.conf', files[a]) || endsWith('.json', files[a]))
-                {
-                    var json = sjl(path.join(folder, files[a]));
-
-                    if (json)
-                    {
-                        result.push(json);
-                    }
-                }
-                else
-                {
-                    var subpath = path.join(folder, files[a]);
-
-                    if (fs.statSync(subpath).isDirectory())
-                    {
-                        result.push(unifyAllUnderFolder(subpath));
-                    }
-                }
+                // In case we don't find the folder just return null and continue mixing JSONs:
+                resolve(null);
             }
-        }
-    }
+            else
+            {
+                fs.readdir(folder, function(err, files)
+                {
+                    if (err)
+                    {
+                        reject(err);
+                    }
+                    else if (files.length)
+                    {
+                        P.map(files, function(file)
+                        {
+                            if (endsWith('.conf', file) || endsWith('.json', file))
+                            {
+                                return sjl(path.join(folder, file));
+                            }
+                            else
+                            {
+                                var subpath = path.join(folder, file);
 
-    return result;
+                                return new P(function(resolve, reject)
+                                {
+                                    fs.stat(subpath, function(err, stat)
+                                    {
+                                        if (stat.isDirectory())
+                                        {
+                                            unifyAllUnderFolder(subpath)
+                                            .then(resolve)
+                                            .catch(reject);
+                                        }
+                                        else
+                                        {
+                                            resolve(null);
+                                        }
+                                    });
+                                });
+                            }
+                        })
+                        .reduce(function(result, json)
+                        {
+                            if (!f.$.isArray(result))
+                            {
+                                result = [result];
+                            }
+
+                            if (json)
+                            {
+                                result.push(json);
+                            }
+
+                            return result;
+                        })
+                        .then(function(result)
+                        {
+                            /* The "reduce" step is skipped when only one doc is loaded.
+                             * If so we need wrapping that only result in an array:
+                             */
+                            if (!f.$.isArray(result))
+                            {
+                                result = [result];
+                            }
+
+                            resolve(result);
+                        })
+                        .catch(reject);
+                    }
+                    else
+                    {
+                        resolve([]);
+                    }
+                });
+            }
+        });
+    });
 }
 
 function buildPath(parts)
@@ -153,89 +251,167 @@ function buildPath(parts)
 
 function loadCommonsFile(basePath)
 {
-    var result;
-
-    f.constrain(basePath).notnull().string().throws('Path must be a string');
-
-    if (fs.existsSync(path.join(basePath, 'common.conf')))
+    return new P(function(resolve, reject)
     {
-        result = sjl(path.join(basePath, 'common.conf'));
-    }
-    else if (fs.existsSync(path.join(basePath, 'common.json')))
-    {
-        result = sjl(path.join(basePath, 'common.json'));
-    }
+        f.constrain(basePath).notnull().string()
+        .otherwise(function()
+        {
+            reject(new Error('Path must be a string'));
+        });
 
-    return result;
+        var commonConf = path.join(basePath, 'common.conf');
+
+        fs.access(commonConf, fs.R_OK | fs.W_OK, function(err)
+        {
+            if (err)
+            {
+                var commonJson = path.join(basePath, 'common.json');
+
+                fs.access(commonJson, fs.R_OK | fs.W_OK, function(err)
+                {
+                    if (err)
+                    {
+                        // No file? Easy solution: don't load anything and return null.
+                        resolve(null);
+                    }
+                    else
+                    {
+                        sjl(commonJson)
+                        .then(resolve)
+                        .catch(reject);
+                    }
+                });
+            }
+            else
+            {
+                sjl(commonConf)
+                .then(resolve)
+                .catch(reject);
+            }
+        });
+    });
 }
 
 function loadCommonsFromPaths(basePath, paths)
 {
-    var result = {};
-
-    f.constrain(basePath).notnull().string().throws('Base-path must be a string');
-    f.constrain(paths).notnull().array().throws('Second argument must be an array');
-
-    var commons = [];
-
-    var incrementalPath = basePath;
-
-    var json = loadCommonsFile(incrementalPath);
-
-    if (json)
+    return new P(function(resolve, reject)
     {
-        commons.push(json);
-    }
-
-    for (var a=0; a<paths.length; a++)
-    {
-        incrementalPath = path.join(incrementalPath, paths[a]);
-
-        json = loadCommonsFile(incrementalPath);
-
-        if (json)
+        f.constrain(basePath).notnull().string()
+        .otherwise(function()
         {
-            commons.push(json);
-        }
-    }
+            reject(new Error('Base-path must be a string'));
+        });
 
-    if (commons.length)
-    {
-        result = unionj.add.apply(unionj, commons);
-    }
+        f.constrain(paths).notnull().array()
+        .otherwise(function()
+        {
+            reject(new Error('Second argument must be an array'));
+        });
 
-    return result;
+        var commons = [];
+
+        var incrementalPath = basePath;
+
+        loadCommonsFile(incrementalPath)
+        .then(function(json)
+        {
+            if (json)
+            {
+                commons.push(json);
+            }
+
+            P.map(paths, function(commonFilePath)
+            {
+                incrementalPath = path.join(incrementalPath, commonFilePath);
+
+                return loadCommonsFile(incrementalPath);
+            })
+            .reduce(function(newCommons, json)
+            {
+                if (!f.$.isArray(newCommons))
+                {
+                    newCommons = [newCommons];
+                }
+
+                if (json)
+                {
+                    newCommons.push(json);
+                }
+
+                return newCommons;
+            })
+            .then(function(newCommons)
+            {
+                var result;
+
+                if (newCommons && newCommons.length)
+                {
+                    // Add to previous commons:
+                    commons = commons.concat(newCommons);
+
+                    result = unionj.add.apply(unionj, commons);
+                }
+                else if (commons && commons.length)
+                {
+                    result = unionj.add.apply(unionj, commons);
+                }
+                else
+                {
+                    result = {};
+                }
+
+                resolve(result);
+            })
+            .catch(reject);
+        })
+        .catch(reject);
+    });
 }
 
 function load(basePath, subPath, strategy)
 {
-    var result;
-
-    f.constrain(basePath, subPath).notnull().strings().throws('Paths must be strings');
-
-    var fullpath;
-
-    if (strategy === STRATEGIES.LEAVES)
+    return new P(function(resolve, reject)
     {
-        fullpath = path.join(basePath, subPath);
+        f.constrain(basePath, subPath).notnull().strings()
+        .otherwise(function()
+        {
+            reject(new Error('Paths must be strings'));
+        });
 
-        result = unifyAllUnderFolder(fullpath);
-    }
-    else if (strategy === STRATEGIES.BACKCURSION)
-    {
-        var commons = loadCommonsFromPaths(basePath, subPath.split(path.sep));
-        var inner   = load(basePath, subPath, STRATEGIES.LEAVES);
+        var fullpath;
 
-        result = unionj.add(commons, inner);
-    }
-    else
-    {
-        fullpath = path.join(basePath, subPath);
+        if (strategy === STRATEGIES.LEAVES)
+        {
+            fullpath = path.join(basePath, subPath);
 
-        result = arrayizeAllUnderFolder(fullpath);
-    }
+            unifyAllUnderFolder(fullpath)
+            .then(resolve)
+            .catch(reject);
+        }
+        else if (strategy === STRATEGIES.BACKCURSION)
+        {
+            loadCommonsFromPaths(basePath, subPath.split(path.sep))
+            .then(function(commons)
+            {
+                load(basePath, subPath, STRATEGIES.LEAVES)
+                .then(function(inner)
+                {
+                    var result = unionj.add(commons, inner);
 
-    return result;
+                    resolve(result);
+                });
+            })
+            .catch(reject);
+        }
+        else // Strategy is "ARRAY"...
+        {
+            fullpath = path.join(basePath, subPath);
+
+            arrayizeAllUnderFolder(fullpath)
+            .then(resolve)
+            .catch(reject);
+        }
+    });
 }
 
 
@@ -249,35 +425,46 @@ function Conf(basePath)
 
 Conf.prototype.get = function()
 {
-    var result = {};
+    var self = this;
+
+    var args;
 
     if (arguments.length)
     {
-        // Parse sublevels:
-        var args = Array.prototype.slice.call(arguments);
-
-        var subPath = buildPath(args);
-
-        result = load(this.basePath, subPath, this._strategy);
+        args = Array.prototype.slice.call(arguments);
     }
-    else
+
+    return new P(function(resolve, reject)
     {
-        // Here things are decided depending on the strategy previously set by the user:
-        if (   this._strategy === STRATEGIES.LEAVES
-            || this._strategy === STRATEGIES.BACKCURSION)
+        if (args && args.length)
         {
-            // Return the whole structure:
-            result = unifyAllUnderFolder(this.basePath);
+            // Parse sublevels:
+            var subPath = buildPath(args);
+
+            load(self.basePath, subPath, self._strategy)
+            .then(resolve)
+            .catch(reject);
         }
-        else // Assumes "ARRAY" strategy
+        else
         {
-            // Return an array of files from the base-path:
-            result = arrayizeAllUnderFolder(this.basePath);
+            // Here things are decided depending on the strategy previously set by the user:
+            if (   self._strategy === STRATEGIES.LEAVES
+                || self._strategy === STRATEGIES.BACKCURSION)
+            {
+                // Answer with the whole structure (by returning the underlying promise):
+                unifyAllUnderFolder(self.basePath)
+                .then(resolve)
+                .catch(reject);
+            }
+            else // Assumes "ARRAY" strategy
+            {
+                // Return an array of files from the base-path:
+                arrayizeAllUnderFolder(self.basePath)
+                .then(resolve)
+                .catch(reject);
+            }
         }
-    }
-
-
-    return result;
+    });
 };
 
 Conf.prototype.from = function()
