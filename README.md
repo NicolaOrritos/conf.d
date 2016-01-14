@@ -50,11 +50,19 @@ Or you can embed conf.d straight into your Node.js code:
 ```js
 var confd = require('confd');
 var conf  = confd.from('/etc/conf.d');
-var obj   = conf.get('myinstancename');
-console.log('Result is: "%s"', JSON.stringify(obj));
-// Result is: "{"key":"value"}"
+
+conf.get('myinstancename')
+.then(function(obj)
+{
+    console.log('Result is: "%s"', JSON.stringify(obj));
+    // Result is: "{"key":"value"}"
+})
+.catch(function(err)
+{
+    // Handle errors here...
+});
 ```
-**Only when used as a node-module the result is an object instead of an actual JSON doc.**
+**When used as a node module the value retrieved is an actual Javascript object instead of a string containing a JSON doc.**
 
 
 ## Paths
@@ -89,6 +97,9 @@ When using the _"Leaves"_ strategy all the documents from the same folder are bu
 There will be no sub-/super-paths traversing: the documents that's going to be bundled are just the ones into the one folder addressed by the provided path.
 
 ### Backcursion
+> [Coming soon]
+
+### Array
 > [Coming soon]
 
 
