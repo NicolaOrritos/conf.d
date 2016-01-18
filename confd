@@ -20,6 +20,8 @@ function startRest(port, from, strategy)
 
 function startCli(path, subpath, strategy)
 {
+    strategy = strategy || confd.strategy.default;
+
     var conf = confd.from(path).strategy().set(strategy);
 
     var json = conf.get(subpath);

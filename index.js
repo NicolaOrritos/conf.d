@@ -519,7 +519,7 @@ Conf.prototype.strategy = function()
         }
         else
         {
-            throw new Error('No such strategy');
+            throw new Error('No such strategy ("%s")', str);
         }
     };
 
