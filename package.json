@@ -1,6 +1,6 @@
 {
   "name": "confd",
-  "version": "1.0.12",
+  "version": "1.1.0",
   "description": "Multi-files JSON configuration loader",
   "author": {
     "name": "Nicola Orritos",

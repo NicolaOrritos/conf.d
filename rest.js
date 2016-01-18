@@ -18,11 +18,17 @@ module.exports =
 
         server.get(/^\/confd\/(.*)/, function(req, res, next)
         {
-            var json = conf.get(req.params[0]);
+            conf.get(req.params[0])
+            .then(function(json)
+            {
+                res.end(JSON.stringify(json));
 
-            res.end(JSON.stringify(json));
-
-            return next();
+                next();
+            })
+            .catch(function(err)
+            {
+                next(new restify.InternalError(err));
+            });
         });
 
 
