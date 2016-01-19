@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var confd = require('../');
+var confd = require('../index.js');
 
 
 describe('conf.d node module', function()
@@ -161,7 +161,7 @@ describe('conf.d node module', function()
         catch (err)
         {
             // An error was thrown, let's check it:
-            if (err.message !== 'No such strategy')
+            if (err.message !== 'No such strategy ("no-such-strategy")')
             {
                 throw err;
             }
