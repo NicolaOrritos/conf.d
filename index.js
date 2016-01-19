@@ -47,7 +47,7 @@ function unifyAllUnderFolder(folder)
 
         folder = path.resolve(folder);
 
-        fs.access(folder, fs.R_OK | fs.W_OK, function(err)
+        fs.access(folder, fs.R_OK, function(err)
         {
             if (err)
             {
@@ -146,7 +146,7 @@ function arrayizeAllUnderFolder(folder)
 
         folder = path.resolve(folder);
 
-        fs.access(folder, fs.R_OK | fs.W_OK, function(err)
+        fs.access(folder, fs.R_OK, function(err)
         {
             if (err)
             {
@@ -261,13 +261,13 @@ function loadCommonsFile(basePath)
 
         var commonConf = path.join(basePath, 'common.conf');
 
-        fs.access(commonConf, fs.R_OK | fs.W_OK, function(err)
+        fs.access(commonConf, fs.R_OK, function(err)
         {
             if (err)
             {
                 var commonJson = path.join(basePath, 'common.json');
 
-                fs.access(commonJson, fs.R_OK | fs.W_OK, function(err)
+                fs.access(commonJson, fs.R_OK, function(err)
                 {
                     if (err)
                     {
