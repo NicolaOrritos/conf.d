@@ -41,8 +41,8 @@ function startCli(path, subpath, strategy)
 var options = 'Either starts the conf.d REST server or the command-line reader \n'
             + '  \n'
             + 'Usage: \n'
-            + '  confd cli get <PATH> [<SUBPATH>] [--strategy leaves|backcursion]\n'
-            + '  confd rest [--port <PORT>] [--from <FOLDER>] [--strategy leaves|backcursion]\n'
+            + '  confd cli get <PATH> [<SUBPATH>] [--strategy leaves|backcursion|array]\n'
+            + '  confd rest [--port <PORT>] [--from <FOLDER>] [--strategy leaves|backcursion|array]\n'
             + '  confd -h | --help \n'
             + '  \n'
             + 'Modes: \n'
@@ -50,11 +50,11 @@ var options = 'Either starts the conf.d REST server or the command-line reader \
             + '  rest Starts the REST server\n'
             + '  \n'
             + 'Options: \n'
-            + '  get <PATH> [<SUBPATH>]        Read the JSON object from <PATH>, eventually scoped to sub-path <SUBPATH> \n'
-            + '  --strategy leaves|backcursion Choose the strategy to be used to unify the documents (default is "' + confd.strategy().default().toLowerCase() + '") \n'
-            + '  --port <PORT>                 Instructs the REST server to listen on port <PORT>. Default port is ' + DEFAULT_PORT + '. \n'
-            + '  --from <FOLDER>               Instructs the REST server to read data from <FOLDER>. Default folder is ' + DEFAULT_FROM + '. \n'
-            + '  -h --help                     Shows this help \n';
+            + '  get <PATH> [<SUBPATH>]              Read the JSON object from <PATH>, eventually scoped to sub-path <SUBPATH> \n'
+            + '  --strategy leaves|backcursion|array Choose the strategy to be used to unify the documents (default is "' + confd.strategy().default().toLowerCase() + '") \n'
+            + '  --port <PORT>                       Instructs the REST server to listen on port <PORT>. Default port is ' + DEFAULT_PORT + '. \n'
+            + '  --from <FOLDER>                     Instructs the REST server to read data from <FOLDER>. Default folder is ' + DEFAULT_FROM + '. \n'
+            + '  -h --help                           Shows this help \n';
 
 var cmd = docopt(options);
 
