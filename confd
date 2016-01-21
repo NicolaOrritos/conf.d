@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-var rest   = require('./rest');
-var confd  = require('./index');
-var docopt = require('docopt').docopt;
+'use strict';
 
-var DEFAULT_PORT = 6868;
-var DEFAULT_FROM = '/etc/conf.d';
+let rest   = require('./rest');
+let confd  = require('./index');
+let docopt = require('docopt').docopt;
+
+let DEFAULT_PORT = 6868;
+let DEFAULT_FROM = '/etc/conf.d';
 
 
 function startRest(port, from, strategy)
@@ -22,14 +24,14 @@ function startCli(path, subpath, strategy)
 {
     strategy = strategy || confd.strategy().default();
 
-    var conf = confd.from(path).strategy().set(strategy);
+    let conf = confd.from(path).strategy().set(strategy);
 
     conf.get(subpath)
-    .then(function(json)
+    .then( json =>
     {
         console.log(JSON.stringify(json));
     })
-    .catch(function(err)
+    .catch( err =>
     {
         console.error('Could not load configuration from "%s" (subpath is "%s"). %s', path, subpath, err);
 
@@ -38,7 +40,7 @@ function startCli(path, subpath, strategy)
 }
 
 
-var options = 'Either starts the conf.d REST server or the command-line reader \n'
+let options = 'Either starts the conf.d REST server or the command-line reader \n'
             + '  \n'
             + 'Usage: \n'
             + '  confd cli get <PATH> [<SUBPATH>] [--strategy leaves|backcursion|array]\n'
@@ -56,7 +58,7 @@ var options = 'Either starts the conf.d REST server or the command-line reader \
             + '  --from <FOLDER>                     Instructs the REST server to read data from <FOLDER>. Default folder is ' + DEFAULT_FROM + '. \n'
             + '  -h --help                           Shows this help \n';
 
-var cmd = docopt(options);
+let cmd = docopt(options);
 
 if (cmd)
 {

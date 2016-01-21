@@ -1,31 +1,31 @@
 
 'use strict';
 
-var confd   = require('./index');
-var restify = require('restify');
+let confd   = require('./index');
+let restify = require('restify');
 
 
 module.exports =
 {
     run: function(from, port, strategy)
     {
-        var conf = confd.from(from).strategy().set(strategy);
+        let conf = confd.from(from).strategy().set(strategy);
 
-        var server = restify.createServer(
+        let server = restify.createServer(
         {
             name: 'conf.d'
         });
 
-        server.get(/^\/confd\/(.*)/, function(req, res, next)
+        server.get(/^\/confd\/(.*)/, (req, res, next) =>
         {
             conf.get(req.params[0])
-            .then(function(json)
+            .then( json =>
             {
                 res.end(JSON.stringify(json));
 
                 next();
             })
-            .catch(function(err)
+            .catch( err =>
             {
                 next(new restify.InternalError(err));
             });

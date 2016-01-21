@@ -1,30 +1,30 @@
 'use strict';
 
-var P      = require("bluebird");
-var f      = require('f.luent');
-var fs     = require('fs');
-var sjl    = require('sjl');
-var path   = require('path');
-var unionj = require('unionj');
+let f        = require('f.luent');
+let fs       = require('fs');
+let sjl      = require('sjl');
+let path     = require('path');
+let unionj   = require('unionj');
+let bluebird = require("bluebird");
 
 
-var STRATEGIES =
+let STRATEGIES =
 {
     LEAVES: 'LEAVES',
     BACKCURSION: 'BACKCURSION',
     ARRAY: 'ARRAY'
 };
 
-var DEFAULT_STRATEGY = STRATEGIES.LEAVES;
+let DEFAULT_STRATEGY = STRATEGIES.LEAVES;
 
 
 function endsWith(end, str)
 {
-    var result = false;
+    let result = false;
 
     if (end && str && end.length && str.length)
     {
-        var pos = str.indexOf(end);
+        let pos = str.indexOf(end);
 
         if (pos >= 0 && pos === str.length - end.length)
         {
@@ -37,17 +37,17 @@ function endsWith(end, str)
 
 function unifyAllUnderFolder(folder)
 {
-    return new P(function(resolve, reject)
+    return new Promise( (resolve, reject) =>
     {
         f.constrain(folder).notnull().string()
-        .otherwise(function()
+        .otherwise( () =>
         {
             reject(new Error('Argument must be a string'));
         });
 
         folder = path.resolve(folder);
 
-        fs.access(folder, fs.R_OK, function(err)
+        fs.access(folder, fs.R_OK, err =>
         {
             if (err)
             {
@@ -56,7 +56,7 @@ function unifyAllUnderFolder(folder)
             }
             else
             {
-                fs.readdir(folder, function(err, files)
+                fs.readdir(folder, (err, files) =>
                 {
                     if (err)
                     {
@@ -65,7 +65,7 @@ function unifyAllUnderFolder(folder)
                     else if (files.length)
                     {
                         // 'common.{conf|json}' files take precedence, acting as base configuration:
-                        var pos = files.indexOf('common.conf');
+                        let pos = files.indexOf('common.conf');
 
                         if (pos === -1)
                         {
@@ -74,13 +74,13 @@ function unifyAllUnderFolder(folder)
 
                         if (pos !== -1 && pos !== 0)
                         {
-                            var common = files[pos];
+                            let common = files[pos];
 
                             files.splice(pos, 1);
                             files.unshift(common);
                         }
 
-                        P.map(files, function(file)
+                        bluebird.map(files, file =>
                         {
                             if (endsWith('.conf', file) || endsWith('.json', file))
                             {
@@ -91,7 +91,7 @@ function unifyAllUnderFolder(folder)
                                 return null;
                             }
                         })
-                        .reduce(function(contents, json)
+                        .reduce( (contents, json) =>
                         {
                             if (!f.$.isArray(contents))
                             {
@@ -105,7 +105,7 @@ function unifyAllUnderFolder(folder)
 
                             return contents;
                         })
-                        .then(function(contents)
+                        .then( contents =>
                         {
                             /* The "reduce" step is skipped when only one doc is loaded.
                              * If so we need wrapping that only result in an array:
@@ -115,11 +115,11 @@ function unifyAllUnderFolder(folder)
                                 contents = [contents];
                             }
 
-                            var result = unionj.add.apply(unionj, contents);
+                            let result = unionj.add.apply(unionj, contents);
 
                             resolve(result);
                         })
-                        .catch(function(err)
+                        .catch( err =>
                         {
                             reject(err);
                         });
@@ -136,17 +136,17 @@ function unifyAllUnderFolder(folder)
 
 function arrayizeAllUnderFolder(folder)
 {
-    return new P(function(resolve, reject)
+    return new Promise( (resolve, reject) =>
     {
         f.constrain(folder).notnull().string()
-        .otherwise(function()
+        .otherwise( () =>
         {
             reject(new Error('Argument must be a string'));
         });
 
         folder = path.resolve(folder);
 
-        fs.access(folder, fs.R_OK, function(err)
+        fs.access(folder, fs.R_OK, err =>
         {
             if (err)
             {
@@ -155,7 +155,7 @@ function arrayizeAllUnderFolder(folder)
             }
             else
             {
-                fs.readdir(folder, function(err, files)
+                fs.readdir(folder, (err, files) =>
                 {
                     if (err)
                     {
@@ -163,7 +163,7 @@ function arrayizeAllUnderFolder(folder)
                     }
                     else if (files.length)
                     {
-                        P.map(files, function(file)
+                        bluebird.map(files, file =>
                         {
                             if (endsWith('.conf', file) || endsWith('.json', file))
                             {
@@ -171,9 +171,9 @@ function arrayizeAllUnderFolder(folder)
                             }
                             else
                             {
-                                var subpath = path.join(folder, file);
+                                let subpath = path.join(folder, file);
 
-                                return new P(function(resolve, reject)
+                                return new Promise( (resolve, reject) =>
                                 {
                                     fs.stat(subpath, function(err, stat)
                                     {
@@ -191,7 +191,7 @@ function arrayizeAllUnderFolder(folder)
                                 });
                             }
                         })
-                        .reduce(function(result, json)
+                        .reduce( (result, json) =>
                         {
                             if (!f.$.isArray(result))
                             {
@@ -205,7 +205,7 @@ function arrayizeAllUnderFolder(folder)
 
                             return result;
                         })
-                        .then(function(result)
+                        .then( result =>
                         {
                             /* The "reduce" step is skipped when only one doc is loaded.
                              * If so we need wrapping that only result in an array:
@@ -231,17 +231,17 @@ function arrayizeAllUnderFolder(folder)
 
 function buildPath(parts)
 {
-    var result = '.';
+    let result = '.';
 
     f.constrain(parts).notnull().array().throws('Argument must be an array');
 
     if (parts.length)
     {
-        for (var a=0; a<parts.length; a++)
+        for (let part of parts)
         {
-            if (parts[a])
+            if (part)
             {
-                result = path.join(result, parts[a]);
+                result = path.join(result, part);
             }
         }
     }
@@ -251,23 +251,23 @@ function buildPath(parts)
 
 function loadCommonsFile(basePath)
 {
-    return new P(function(resolve, reject)
+    return new Promise( (resolve, reject) =>
     {
         f.constrain(basePath).notnull().string()
-        .otherwise(function()
+        .otherwise( () =>
         {
             reject(new Error('Path must be a string'));
         });
 
-        var commonConf = path.join(basePath, 'common.conf');
+        let commonConf = path.join(basePath, 'common.conf');
 
-        fs.access(commonConf, fs.R_OK, function(err)
+        fs.access(commonConf, fs.R_OK, err =>
         {
             if (err)
             {
-                var commonJson = path.join(basePath, 'common.json');
+                let commonJson = path.join(basePath, 'common.json');
 
-                fs.access(commonJson, fs.R_OK, function(err)
+                fs.access(commonJson, fs.R_OK, err =>
                 {
                     if (err)
                     {
@@ -294,39 +294,39 @@ function loadCommonsFile(basePath)
 
 function loadCommonsFromPaths(basePath, paths)
 {
-    return new P(function(resolve, reject)
+    return new Promise( (resolve, reject) =>
     {
         f.constrain(basePath).notnull().string()
-        .otherwise(function()
+        .otherwise( () =>
         {
             reject(new Error('Base-path must be a string'));
         });
 
         f.constrain(paths).notnull().array()
-        .otherwise(function()
+        .otherwise( () =>
         {
             reject(new Error('Second argument must be an array'));
         });
 
-        var commons = [];
+        let commons = [];
 
-        var incrementalPath = basePath;
+        let incrementalPath = basePath;
 
         loadCommonsFile(incrementalPath)
-        .then(function(json)
+        .then( json =>
         {
             if (json)
             {
                 commons.push(json);
             }
 
-            P.map(paths, function(commonFilePath)
+            bluebird.map(paths, commonFilePath =>
             {
                 incrementalPath = path.join(incrementalPath, commonFilePath);
 
                 return loadCommonsFile(incrementalPath);
             })
-            .reduce(function(newCommons, json)
+            .reduce( (newCommons, json) =>
             {
                 if (!f.$.isArray(newCommons))
                 {
@@ -340,9 +340,9 @@ function loadCommonsFromPaths(basePath, paths)
 
                 return newCommons;
             })
-            .then(function(newCommons)
+            .then( newCommons =>
             {
-                var result;
+                let result;
 
                 if (newCommons && newCommons.length)
                 {
@@ -370,15 +370,15 @@ function loadCommonsFromPaths(basePath, paths)
 
 function load(basePath, subPath, strategy)
 {
-    return new P(function(resolve, reject)
+    return new Promise( (resolve, reject) =>
     {
         f.constrain(basePath, subPath).notnull().strings()
-        .otherwise(function()
+        .otherwise( () =>
         {
             reject(new Error('Paths must be strings'));
         });
 
-        var fullpath;
+        let fullpath;
 
         if (strategy === STRATEGIES.LEAVES)
         {
@@ -391,15 +391,16 @@ function load(basePath, subPath, strategy)
         else if (strategy === STRATEGIES.BACKCURSION)
         {
             loadCommonsFromPaths(basePath, subPath.split(path.sep))
-            .then(function(commons)
+            .then( commons =>
             {
-                load(basePath, subPath, STRATEGIES.LEAVES)
-                .then(function(inner)
+                return load(basePath, subPath, STRATEGIES.LEAVES)
+                .then( inner =>
                 {
-                    var result = unionj.add(commons, inner);
+                    let result = unionj.add(commons, inner);
 
                     resolve(result);
-                });
+                })
+                .catch(reject);
             })
             .catch(reject);
         }
@@ -425,21 +426,21 @@ function Conf(basePath)
 
 Conf.prototype.get = function()
 {
-    var self = this;
+    let self = this;
 
-    var args;
+    let args;
 
     if (arguments.length)
     {
         args = Array.prototype.slice.call(arguments);
     }
 
-    return new P(function(resolve, reject)
+    return new Promise( (resolve, reject) =>
     {
         if (args && args.length)
         {
             // Parse sublevels:
-            var subPath = buildPath(args);
+            let subPath = buildPath(args);
 
             load(self.basePath, subPath, self._strategy)
             .then(resolve)
@@ -474,9 +475,9 @@ Conf.prototype.from = function()
 
 Conf.prototype.strategy = function()
 {
-    var confRef = this;
+    let confRef = this;
 
-    var obj = {};
+    let obj = {};
 
     obj.leaves = function()
     {
@@ -507,10 +508,10 @@ Conf.prototype.strategy = function()
     obj.set = function(str)
     {
         if (str &&
-                (   str.toUpperCase() === STRATEGIES.LEAVES
-                 || str.toUpperCase() === STRATEGIES.BACKCURSION
-                 || str.toUpperCase() === STRATEGIES.ARRAY
-                )
+               (   str.toUpperCase() === STRATEGIES.LEAVES
+                || str.toUpperCase() === STRATEGIES.BACKCURSION
+                || str.toUpperCase() === STRATEGIES.ARRAY
+               )
            )
         {
             confRef._strategy = str.toUpperCase();
@@ -550,7 +551,7 @@ module.exports =
     {
         f.constrain(basePath).notnull().string().throws('Base-path must be a string');
 
-        var result = new Conf(basePath);
+        let result = new Conf(basePath);
 
         return result;
     }
