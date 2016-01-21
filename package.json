@@ -1,6 +1,6 @@
 {
   "name": "confd",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Multi-files JSON configuration loader",
   "author": {
     "name": "Nicola Orritos",
@@ -29,10 +29,10 @@
   "dependencies": {
     "bluebird": "^3.1.1",
     "docopt": "^0.6.2",
-    "f.luent": "^0.6.6",
+    "f.luent": "^1.0.0",
     "restify": "^4.0.3",
-    "sjl": "^1.1.0",
-    "unionj": "^0.6.6"
+    "sjl": "^2.0.2",
+    "unionj": "^1.0.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
