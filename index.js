@@ -1,11 +1,10 @@
 'use strict';
 
-let f        = require('f.luent');
-let fs       = require('fs');
-let sjl      = require('sjl');
-let path     = require('path');
-let unionj   = require('unionj');
-let bluebird = require("bluebird");
+const f        = require('f.luent');
+const fs       = require('fs');
+const sjl      = require('sjl');
+const path     = require('path');
+const unionj   = require('unionj');
 
 
 let STRATEGIES =
@@ -80,7 +79,7 @@ function unifyAllUnderFolder(folder)
                             files.unshift(common);
                         }
 
-                        bluebird.map(files, file =>
+                        const promises = files.map( file =>
                         {
                             if (endsWith('.conf', file) || endsWith('.json', file))
                             {
@@ -90,23 +89,26 @@ function unifyAllUnderFolder(folder)
                             {
                                 return null;
                             }
-                        })
-                        .reduce( (contents, json) =>
-                        {
-                            if (!f.$.isArray(contents))
-                            {
-                                contents = [contents];
-                            }
+                        });
 
-                            if (json)
-                            {
-                                contents.push(json);
-                            }
-
-                            return contents;
-                        })
-                        .then( contents =>
+                        Promise.all(promises)
+                        .then( jsons =>
                         {
+                            let contents = jsons.reduce( (contents, json) =>
+                            {
+                                if (!f.$.isArray(contents))
+                                {
+                                    contents = [contents];
+                                }
+
+                                if (json)
+                                {
+                                    contents.push(json);
+                                }
+
+                                return contents;
+                            });
+
                             /* The "reduce" step is skipped when only one doc is loaded.
                              * If so we need wrapping that only result in an array:
                              */
@@ -118,10 +120,6 @@ function unifyAllUnderFolder(folder)
                             let result = unionj.add.apply(unionj, contents);
 
                             resolve(result);
-                        })
-                        .catch( err =>
-                        {
-                            reject(err);
                         });
                     }
                     else
@@ -163,7 +161,7 @@ function arrayizeAllUnderFolder(folder)
                     }
                     else if (files.length)
                     {
-                        bluebird.map(files, file =>
+                        const promises = files.map( file =>
                         {
                             if (endsWith('.conf', file) || endsWith('.json', file))
                             {
@@ -190,23 +188,26 @@ function arrayizeAllUnderFolder(folder)
                                     });
                                 });
                             }
-                        })
-                        .reduce( (result, json) =>
-                        {
-                            if (!f.$.isArray(result))
-                            {
-                                result = [result];
-                            }
+                        });
 
-                            if (json)
-                            {
-                                result.push(json);
-                            }
-
-                            return result;
-                        })
-                        .then( result =>
+                        Promise.all(promises)
+                        .then( jsons =>
                         {
+                            let result = jsons.reduce( (result, json) =>
+                            {
+                                if (!f.$.isArray(result))
+                                {
+                                    result = [result];
+                                }
+
+                                if (json)
+                                {
+                                    result.push(json);
+                                }
+
+                                return result;
+                            });
+
                             /* The "reduce" step is skipped when only one doc is loaded.
                              * If so we need wrapping that only result in an array:
                              */
@@ -216,8 +217,7 @@ function arrayizeAllUnderFolder(folder)
                             }
 
                             resolve(result);
-                        })
-                        .catch(reject);
+                        });
                     }
                     else
                     {
@@ -320,28 +320,31 @@ function loadCommonsFromPaths(basePath, paths)
                 commons.push(json);
             }
 
-            bluebird.map(paths, commonFilePath =>
+            const promises = paths.map( commonFilePath =>
             {
                 incrementalPath = path.join(incrementalPath, commonFilePath);
 
                 return loadCommonsFile(incrementalPath);
-            })
-            .reduce( (newCommons, json) =>
-            {
-                if (!f.$.isArray(newCommons))
-                {
-                    newCommons = [newCommons];
-                }
+            });
 
-                if (json)
-                {
-                    newCommons.push(json);
-                }
-
-                return newCommons;
-            })
-            .then( newCommons =>
+            Promise.all(promises)
+            .then( jsons =>
             {
+                let newCommons = jsons.reduce( (newCommons, json) =>
+                {
+                    if (!f.$.isArray(newCommons))
+                    {
+                        newCommons = [newCommons];
+                    }
+
+                    if (json)
+                    {
+                        newCommons.push(json);
+                    }
+
+                    return newCommons;
+                });
+
                 let result;
 
                 if (newCommons && newCommons.length)
@@ -361,8 +364,7 @@ function loadCommonsFromPaths(basePath, paths)
                 }
 
                 resolve(result);
-            })
-            .catch(reject);
+            });
         })
         .catch(reject);
     });

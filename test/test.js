@@ -1,7 +1,7 @@
 'use strict';
 
-let assert = require('assert');
-let confd = require('../index.js');
+const assert = require('assert');
+const confd = require('../index.js');
 
 
 describe('conf.d node module', () =>
@@ -29,15 +29,12 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must create an object from an existing path populated with configuration files', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         assert(conf);
         assert(conf.toString() === '[object Conf]');
@@ -70,16 +67,13 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must return the path with which it got initialized when calling the "from()" method on the returned object', done =>
     {
-        let conf = confd.from('test/data');
-        let path = conf.from();
+        const conf = confd.from('test/data');
+        const path = conf.from();
 
         assert(conf);
         assert(path);
@@ -90,7 +84,7 @@ describe('conf.d node module', () =>
 
     it('must create an object from an existing path with the default strategy set', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         assert(conf);
         assert(conf.strategy().get() === confd.strategy().default());
@@ -100,7 +94,7 @@ describe('conf.d node module', () =>
 
     it('must correctly set strategies when using "set()" method', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         conf.strategy().set(confd.STRATEGIES.BACKCURSION);
 
@@ -125,7 +119,7 @@ describe('conf.d node module', () =>
 
     it('must correctly set strategies when using ad-hoc methods', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         conf.strategy().backcursion();
 
@@ -150,20 +144,20 @@ describe('conf.d node module', () =>
 
     it('must refuse incorrect strategies passed to "set()" method', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         try
         {
             conf.strategy().set('no-such-strategy');
 
-            throw new Error('Should have thrown an error');
+            done(new Error('Should have thrown an error'));
         }
         catch (err)
         {
             // An error was thrown, let's check it:
             if (err.message !== 'No such strategy ("no-such-strategy")')
             {
-                throw err;
+                done(err);
             }
             else
             {
@@ -174,7 +168,7 @@ describe('conf.d node module', () =>
 
     it('must load configuration from an existing path populated with a single configuration file', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         assert(conf);
 
@@ -182,19 +176,17 @@ describe('conf.d node module', () =>
         .then( json =>
         {
             assert(json);
+            assert(json.k === 'v_common');
             assert(json.k_a === 'v_a');
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load configuration from an existing subpath populated with a single configuration file', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         assert(conf);
 
@@ -206,15 +198,12 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load merged configurations from an existing subpath', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         assert(conf);
 
@@ -226,15 +215,12 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load merged configurations using the common one as base', done =>
     {
-        let conf = confd.from('test/data');
+        const conf = confd.from('test/data');
 
         assert(conf);
 
@@ -247,10 +233,7 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load merged configurations using "backcursion" strategy', done =>
@@ -282,15 +265,12 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load default upper configurations when using "backcursion" and no lower folders/files are found', done =>
     {
-        let conf = confd.from('test/data').strategy().backcursion();
+        const conf = confd.from('test/data').strategy().backcursion();
 
         assert(conf);
 
@@ -302,15 +282,12 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load an array of configurations when using the "array" strategy and we have simple files all into the same folder', done =>
     {
-        let conf = confd.from('test/data').strategy().array();
+        const conf = confd.from('test/data').strategy().array();
 
         assert(conf);
 
@@ -326,15 +303,12 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 
     it('must load an array of configurations when using the "array" strategy and we have both files and folders containing other files, under the same root folder', done =>
     {
-        let conf = confd.from('test/data').strategy().array();
+        const conf = confd.from('test/data').strategy().array();
 
         assert(conf);
 
@@ -372,9 +346,6 @@ describe('conf.d node module', () =>
 
             done();
         })
-        .catch( error =>
-        {
-            throw error;
-        });
+        .catch(done);
     });
 });
