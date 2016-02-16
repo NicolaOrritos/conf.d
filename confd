@@ -29,7 +29,7 @@ function startCli(path, subpath, strategy)
     conf.get(subpath)
     .then( json =>
     {
-        console.log(JSON.stringify(json));
+        console.log(JSON.stringify(json, null, 4));
     })
     .catch( err =>
     {
